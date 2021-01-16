@@ -1,0 +1,173 @@
+
+ * CONTROLS
+ * - Keyboard
+ *  WASD Keys - Move/Strafe
+ *  Arrow Keys - Look Around
+ 
+ */
+var createScene = function () {
+   
+    var scene = new BABYLON.Scene(engine);
+    var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, 0), scene);
+        let pipW = (ar < 1) ? 0.3 : 0.3 * (1/ar);
+        let pipH = (ar < 1) ? 0.3 * ar : 0.3;
+        let pipX = 1 - pipW;
+        let pipY = 1 - pipH;
+
+     
+        camera.viewport = new BABYLON.Viewport(0, 0, 1, 1);
+        pipCamera.viewport = new BABYLON.Viewport(pipX, pipY, pipW, pipH);
+
+     
+        camera.layerMask = 0x30000000;  /
+        pipCamera.layerMask = 0x10000000; 
+
+   
+        scene.activeCameras.push(camera);
+        scene.activeCameras.push(pipCamera);
+
+     
+      
+       
+        var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+       
+        light.intensity = 0.7;
+
+        
+        scene.meshes.forEach((mesh) => {
+            mesh.scaling = new BABYLON.Vector3(3,3,3);
+            mesh.layerMask = 0x10000000; 
+        });
+
+
+        // import sphere RGB js 
+        // from HARRY MUZART cogn paradigm set 34x5
+        // https://github.com/Harry-Muzart/repo-bab.js.C4WV
+
+        // built-in 'sphere' shape.
+        var sphere = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5, segments: 2}, scene);
+
+        // Move sphere upward 1/2 its hx
+        sphere.position.y = 10;
+
+        // Move the sphere in z dir
+        // sphere.position.z = 50;
+
+        // color the sphere - assoc red
+        var material = new BABYLON.StandardMaterial(scene);
+        material.alpha = 1;
+        material.diffuseColor = new BABYLON.Color3(1, 0.25, 0.2);
+        sphere.material = material; //
+
+
+        
+        // built-in 'sphere' shape.
+        var sphereB = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 5, segments: 2}, scene);
+
+        // M the sphere upward 1/2 its height
+        sphereB.position.y = 20;
+
+        // Move the sphere in x dir
+        sphereB.position.x = 110;
+
+        // color the sphere Green - assoc Reward
+        var material = new BABYLON.StandardMaterial(scene);
+        material.alpha = 1;
+        material.diffuseColor = new BABYLON.Color3(0.2, 1, 0.44);
+        sphereB.material = material; //
+
+
+       
+        camera.setTarget(new BABYLON.Vector3(1,6,0));
+
+       
+        createSkyBox(scene);
+
+     DeviceSourceManager
+        var dsm = initializeInput(scene, camera, pipCamera);
+    });
+
+    return scene;
+};
+
+
+ * https://doc.babylonjs.com/div
+ */
+var initializeInput = function (scene, camera, pipCamera) {
+    let dsm = new BABYLON.DeviceSourceManager(scene.getEngine());
+
+    dsm.onDeviceConnectedObservable.add((device) => {
+        // KEYBOARD CONFIG
+        if (device.deviceType === BABYLON.DeviceType.Keyboard) {
+            scene.onBeforeRenderObservable.add(() => {
+                let transformMatrix = BABYLON.Matrix.Zero();
+                let localDirection = BABYLON.Vector3.Zero();
+                let transformedDirection = BABYLON.Vector3.Zero();
+                let isMoving = false;
+
+                // WASD will move and strafe
+                if (device.getInput(65) === 1) {
+                    localDirection.x = -0.9;
+                    isMoving = true;
+                }
+                if (device.getInput(68) === 1) {
+                    localDirection.x = 0.9;
+                    isMoving = true;
+                }
+
+                if (device.getInput(87) === 1) {
+                    localDirection.z = 0.9;
+                    isMoving = true;
+                }
+                if (device.getInput(83) === 1) {
+                    localDirection.z = -0.9;
+                    isMoving = true;
+                }
+
+                // Arrow keys to rotate
+                if (device.getInput(37) === 1) {
+                    camera.rotation.y -= 0.03;
+                }
+                if (device.getInput(39) === 1) {
+                    camera.rotation.y += 0.03;
+                }
+                if (device.getInput(38) === 1) {
+                    camera.rotation.x -= 0.03;
+                }
+                if (device.getInput(40) === 1) {
+                    camera.rotation.x += 0.03;
+                }
+
+                if (isMoving) {
+                    camera.getViewMatrix().invertToRef(transformMatrix);
+                    BABYLON.Vector3.TransformNormalToRef(localDirection, transformMatrix, transformedDirection);
+                    camera.position.addInPlace(transformedDirection);
+                    pipCamera.position.addInPlace(transformedDirection);
+                    castRay(scene, pipCamera);
+                }
+            });
+        }
+        // POINTER CONFIG
+        else if (device.deviceType === BABYLON.DeviceType.Mouse || device.deviceType === BABYLON.DeviceType.Touch) {
+            device.onInputChangedObservable.add((deviceData) => {
+                if (deviceData.inputIndex === BABYLON.PointerInput.Horizontal && device.getInput(BABYLON.PointerInput.LeftClick) === 1) {
+                    camera.rotation.y += (deviceData.currentState - deviceData.previousState) * 0.005;
+                }
+
+                if (deviceData.inputIndex === BABYLON.PointerInput.Vertical && device.getInput(BABYLON.PointerInput.LeftClick) === 1) {
+                    camera.rotation.x += (deviceData.currentState - deviceData.previousState) * 0.005;
+                }
+            });
+
+        let meshesToReAdd = omittedMeshes.filter(omittedMesh => meshesToCheck.indexOf(omittedMesh) < 0);
+        meshesToReAdd.forEach((omittedMesh) => {
+            omittedMesh.layerMask = 0x10000000;
+        });
+
+        omittedMeshes = meshesToCheck;
+    }
+};
+
+
+/// credit goes to https://pl.babylonjs.com/# contributors
